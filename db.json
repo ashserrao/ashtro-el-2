@@ -1,0 +1,189 @@
+{
+  "flags": [
+    {
+      "id": "15ce",
+      "flag_type": "RED",
+      "transfer_to": "Don't Transfer",
+      "reason": "Display Alert",
+      "attachments": "",
+      "object": "",
+      "sender": "Examlock lite",
+      "comment": "extra display added or found",
+      "timestamp": 1742809538983,
+      "key": "",
+      "status": "",
+      "proctorComment": ""
+    }
+  ],
+  "requested-features": [
+    {
+      "examSecurityId": 1,
+      "securityFeatureId": 101,
+      "title": "Allowed References",
+      "tenantGuid": "534e7eec-e6a4-4421-84da-24dd00f3f417",
+      "description": "This feature controls whether external references are allowed.",
+      "icon": null,
+      "selected": true,
+      "hasChild": null,
+      "value": "enabled",
+      "examId": 12345,
+      "locked": false,
+      "id": "c615"
+    },
+    {
+      "examSecurityId": 2,
+      "securityFeatureId": 102,
+      "title": "Show Windows Notification",
+      "tenantGuid": "534e7eec-e6a4-4421-84da-24dd00f3f417",
+      "description": "Enables or disables the ability to show Windows notifications during the exam.",
+      "icon": null,
+      "selected": true,
+      "hasChild": null,
+      "value": "enabled",
+      "examId": 12345,
+      "locked": false,
+      "id": "a393"
+    },
+    {
+      "examSecurityId": 3,
+      "securityFeatureId": 103,
+      "title": "Lost Focus Detection",
+      "tenantGuid": "534e7eec-e6a4-4421-84da-24dd00f3f417",
+      "description": "Detects if the exam tab loses focus.",
+      "icon": null,
+      "selected": true,
+      "hasChild": null,
+      "value": "enabled",
+      "examId": 12345,
+      "locked": false,
+      "id": "b2bf"
+    },
+    {
+      "examSecurityId": 4,
+      "securityFeatureId": 104,
+      "title": "Incognito Detection",
+      "tenantGuid": "534e7eec-e6a4-4421-84da-24dd00f3f417",
+      "description": "Detects if the user is using incognito or private browsing mode.",
+      "icon": null,
+      "selected": true,
+      "hasChild": null,
+      "value": "enabled",
+      "examId": 12345,
+      "locked": false,
+      "id": "6e2c"
+    },
+    {
+      "examSecurityId": 5,
+      "securityFeatureId": 105,
+      "title": "DevTools Detection",
+      "tenantGuid": "534e7eec-e6a4-4421-84da-24dd00f3f417",
+      "description": "Detects if the developer tools (DevTools) are open in the browser.",
+      "icon": null,
+      "selected": true,
+      "hasChild": null,
+      "value": "enabled",
+      "examId": 12345,
+      "locked": false,
+      "id": "5fdb"
+    },
+    {
+      "examSecurityId": 6,
+      "securityFeatureId": 106,
+      "title": "Chrome Extensions Detection",
+      "tenantGuid": "534e7eec-e6a4-4421-84da-24dd00f3f417",
+      "description": "Detects if any Chrome extensions are active during the exam.",
+      "icon": null,
+      "selected": true,
+      "hasChild": null,
+      "value": "enabled",
+      "examId": 12345,
+      "locked": false,
+      "id": "b051"
+    },
+    {
+      "examSecurityId": 7,
+      "securityFeatureId": 107,
+      "title": "Dual Screen Detection",
+      "tenantGuid": "534e7eec-e6a4-4421-84da-24dd00f3f417",
+      "description": "Detects if the user is using dual screens during the exam.",
+      "icon": null,
+      "selected": true,
+      "hasChild": null,
+      "value": "enabled",
+      "examId": 12345,
+      "locked": false,
+      "id": "3765"
+    },
+    {
+      "examSecurityId": 8,
+      "securityFeatureId": 108,
+      "title": "Tab Detection & Blocking",
+      "tenantGuid": "534e7eec-e6a4-4421-84da-24dd00f3f417",
+      "description": "Detects if the user is opening additional tabs",
+      "icon": null,
+      "selected": true,
+      "hasChild": null,
+      "value": "enabled",
+      "examId": 12345,
+      "locked": false,
+      "id": "0160"
+    },
+    {
+      "examSecurityId": 9,
+      "securityFeatureId": 109,
+      "title": "Advanced System Check",
+      "tenantGuid": "534e7eec-e6a4-4421-84da-24dd00f3f417",
+      "description": "Deep system check using chrome extension",
+      "icon": null,
+      "selected": true,
+      "hasChild": null,
+      "value": "enabled",
+      "examId": 12345,
+      "locked": false,
+      "id": "9161"
+    },
+    {
+      "examSecurityId": 9,
+      "securityFeatureId": 109,
+      "title": "Key Blocker",
+      "tenantGuid": "534e7eec-e6a4-4421-84da-24dd00f3f417",
+      "description": "Blocks the hot keys during the exam.",
+      "icon": null,
+      "selected": true,
+      "hasChild": null,
+      "value": "enabled",
+      "examId": 12345,
+      "locked": false,
+      "id": "2932"
+    },
+    {
+      "examSecurityId": 10,
+      "securityFeatureId": 110,
+      "title": "Record Video",
+      "tenantGuid": "534e7eec-e6a4-4421-84da-24dd00f3f417",
+      "description": "Record web cam and screen throughout the exam.",
+      "icon": null,
+      "selected": true,
+      "hasChild": null,
+      "value": "enabled",
+      "examId": 12345,
+      "locked": false,
+      "id": "93e2"
+    }
+  ],
+  "posts": [
+    {
+      "id": "1",
+      "title": "a title",
+      "views": 100
+    },
+    {
+      "id": "2",
+      "title": "another title",
+      "views": 200
+    }
+  ],
+  "profile": {
+    "name": "typicode"
+  }
+}
