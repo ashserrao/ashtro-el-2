@@ -107,12 +107,14 @@ function Systemcheck() {
                 <span className="mx-1" id="ram-capacity">
                   {ramCapacity} GB
                 </span>
-                <img
-                  className="h-4 mx-1 my-auto"
-                  id="ram-reqimg"
-                  src="/assets/loading.gif"
-                  alt="loading"
-                />
+                {/* 
+                  <img
+                    className="h-4 mx-1 my-auto"
+                    id="ram-reqimg"
+                    src="/assets/loading.gif"
+                    alt="loading"
+                  />
+                */}
               </div>
               <div className="text-xs font-medium my-1 whitespace-nowrap">
                 <p className="w-full flex flex-wrap">
@@ -121,12 +123,14 @@ function Systemcheck() {
                   <span className="mx-1" id="ram-usage">
                     {ramUsed}%
                   </span>
-                  <img
-                    className="h-4 my-auto"
-                    id="ram-usedimg"
-                    src="/assets/loading.gif"
-                    alt="loading"
-                  />
+                  {/* 
+                    <img
+                      className="h-4 my-auto"
+                      id="ram-usedimg"
+                      src="/assets/loading.gif"
+                      alt="loading"
+                    />
+                  */}
                 </p>
               </div>
               <div className="ram-container w-full my-2">
@@ -152,12 +156,14 @@ function Systemcheck() {
                 >
                   {cpuModel}
                 </span>
-                <img
-                  id="cpu-name"
-                  className="my-auto h-4"
-                  src="/assets/loading.gif"
-                  alt="loading"
-                />
+                {/* 
+                  <img
+                    id="cpu-name"
+                    className="my-auto h-4"
+                    src="/assets/loading.gif"
+                    alt="loading"
+                  />
+                */}
               </div>
               <div className="text-xs font-medium flex flex-wrap align-center my-2">
                 <div className="my-1 flex flex-wrap">
@@ -175,12 +181,14 @@ function Systemcheck() {
                 >
                   {cpuCores}
                 </span>
-                <img
-                  id="core-number"
-                  className="h-4 my-auto"
-                  src="/assets/loading.gif"
-                  alt="loading"
-                />
+                {/* 
+                  <img
+                    id="core-number"
+                    className="h-4 my-auto"
+                    src="/assets/loading.gif"
+                    alt="loading"
+                  />
+                */}
               </div>
             </div>
             <div className="cpu-chart my-2">
@@ -191,12 +199,14 @@ function Systemcheck() {
                   <span className="mx-1" id="cpu-usage">
                     {cpuUsed}%
                   </span>
-                  <img
-                    id="cpu-req"
-                    className="my-auto h-4"
-                    src="/assets/loading.gif"
-                    alt="loading"
-                  />
+                  {/* 
+                    <img
+                      id="cpu-req"
+                      className="my-auto h-4"
+                      src="/assets/loading.gif"
+                      alt="loading"
+                    />
+                  */}
                 </p>
                 <div className="cpu-container">
                   <div className="pb-4">

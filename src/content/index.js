@@ -113,12 +113,12 @@ xmlns="http://www.w3.org/2000/svg"
 /**
  * Prevent direct window exit confirmation
  */
-window.addEventListener("beforeunload", function (e) {
-  if (devRemove === false) {
-    e.preventDefault();
-    e.returnValue = "";
-  }
-});
+// window.addEventListener("beforeunload", function (e) {
+//   if (devRemove === false) {
+//     e.preventDefault();
+//     e.returnValue = "";
+//   }
+// });
 
 /**
  * get security features from background.js
@@ -165,57 +165,14 @@ document.addEventListener("DOMContentLoaded", function (e) {
   const body = document.querySelector("body");
 
   /**
-   * Function to block content during an exam session
-   */
-  const blockContent = () => {
-    if (
-      loginStatus === true &&
-      examStatus === "inProgress" &&
-      requestFeatures.includes("CONTENT_BLOCKER")
-    ) {
-      try {
-        if (window.parent && window.parent !== window) {
-          window.parent.document.body.style.opacity = "0";
-        } else {
-          document.body.style.opacity = "0";
-        }
-      } catch (e) {
-        document.body.style.opacity = "0";
-      }
-
-      const message = {
-        action: "content-blocked",
-      };
-
-      chrome.runtime.sendMessage(message, (response) => {
-        console.log("Check if working:", response);
-      });
-    } else {
-      console.log(
-        "Content block failed since user is not logged in or exam is not in progress."
-      );
-    }
-  };
-
-  /**
    * unblock content function
    */
   const unBlockContent = () => {
-    try {
-      if (window.parent && window.parent !== window) {
-        window.parent.document.body.style.opacity = "1";
-      } else {
-        document.body.style.opacity = "1";
-      }
-    } catch (e) {
-      document.body.style.opacity = "1";
-    }
-
-    let value = {
-      remark: `Content was unblocked in the url ${window.location.href}`,
+    const data = {
+      trigger: "exam-play",
     };
+    window.postMessage(data, "*");
     disabledEvent(e);
-    actionLogger(`Content was unblocked`, JSON.stringify(value));
   };
 
   /**
@@ -237,8 +194,9 @@ document.addEventListener("DOMContentLoaded", function (e) {
           remark: `Candidate has exited the full screen ${window.location.href}`,
         };
         disabledEvent(e);
-        actionLogger(`Full screen exited`, JSON.stringify(value));
-        blockContent();
+        actionLogger(`Full screen exited`, JSON.stringify(value), false);
+        // blockContent();
+        makeTabFullScreen();
       }
     }
   }
@@ -253,47 +211,43 @@ document.addEventListener("DOMContentLoaded", function (e) {
       examStatus === "inProgress"
     ) {
       if (e.altKey && "tab".indexOf(e.key) !== -1) {
-        blockContent();
         let value = {
           remark: `Content blocked since the candidate pressed alt and ${e.key} key which is not allowed in the url ${window.location.href}`,
         };
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed alt and ${e.key} key`,
-          JSON.stringify(value)
+          JSON.stringify(value), true
         );
       } else if (e.ctrlKey && "tab".indexOf(e.key) !== -1) {
-        blockContent();
         let value = {
           remark: `Content blocked since the candidate pressed ctrl and ${e.key} key which is not allowed in the url ${window.location.href}`,
         };
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed ctrl and ${e.key} key`,
-          JSON.stringify(value)
+          JSON.stringify(value), true
         );
       } else if (
         (e.metaKey && e.key == "PrintScreen") ||
         e.key == "PrintScreen"
       ) {
-        blockContent();
         let value = {
           remark: `Content blocked since the candidate tried to print the screen in the url ${window.location.href}`,
         };
         disabledEvent(e);
         actionLogger(
           `Restricted key print screen detected`,
-          JSON.stringify(value)
+          JSON.stringify(value), true
         );
       } else if (e.ctrlKey && e.shiftKey) {
-        blockContent();
         let value = {
           remark: `Content blocked since the candidate pressed ctrl and ${e.key} in the url ${window.location.href}`,
         };
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed ctrl and ${e.key}`,
-          JSON.stringify(value)
+          JSON.stringify(value), true
         );
       } else if (e.shiftKey && e.metaKey) {
         let value = {
@@ -302,29 +256,26 @@ document.addEventListener("DOMContentLoaded", function (e) {
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed shift and ${e.metaKey}`,
-          JSON.stringify(value)
+          JSON.stringify(value), false
         );
       } else if (e.ctrlKey && e.shiftKey && "34".indexOf(e.key)) {
-        blockContent();
         let value = {
           remark: `Pressed ctrl key, shift key and ${e.key} key in the url ${window.location.href}`,
         };
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed ctrl key, shift key and ${e.key} key`,
-          JSON.stringify(value)
+          JSON.stringify(value), true
         );
       } else if (e.ctrlKey && e.shiftKey) {
-        blockContent();
         let value = {
           remark: `Pressed ctrl key, shift key and ${e.key} key in the url ${window.location.href}`,
         };
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed ctrl key, shift key and ${e.key}`,
-          JSON.stringify(value)
+          JSON.stringify(value), true
         );
-        blockContent();
       } else if (
         [
           // "Shift",
@@ -339,12 +290,11 @@ document.addEventListener("DOMContentLoaded", function (e) {
           "escape",
         ].includes(e.key)
       ) {
-        blockContent();
         let value = {
           remark: `Content blocked since the candidate pressed ${e.key} key which is not allowed in the url ${window.location.href}`,
         };
         disabledEvent(e);
-        actionLogger(`Restricted key pressed ${e.key}`, JSON.stringify(value));
+        actionLogger(`Restricted key pressed ${e.key}`, JSON.stringify(value), true);
       } else if (
         [
           "F1",
@@ -364,27 +314,25 @@ document.addEventListener("DOMContentLoaded", function (e) {
         let value = {
           remark: `Content blocked since the candidate pressed ${e.key} key which is not allowed in the url ${window.location.href}`,
         };
-        blockContent();
         actionLogger(
           `Restricted key pressed ${e.key} key`,
-          JSON.stringify(value)
+          JSON.stringify(value), true
         );
       } else if (e.ctrlKey && "cvxspwuaz".indexOf(e.key) !== -1) {
-        blockContent();
         let value = {
           remark: `Content blocked since the candidate pressed ctrl key and ${e.key} in the url ${window.location.href}`,
         };
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed ctrl key and ${e.key}`,
-          JSON.stringify(value)
+          JSON.stringify(value), true
         );
       } else if (e.key === " ") {
         spaceCount++;
         if (spaceCount === 2) {
           unBlockContent();
           spaceCount = 0;
-          makeTabFullScreen();
+          // makeTabFullScreen();
         }
       } else {
         // console.log("Keydown event failed", e);
@@ -395,7 +343,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
   /**
    * logging trigger
    */
-  function actionLogger(reason, cmt) {
+  function actionLogger(reason, cmt, block) {
     let flag = {
       flag_type: "RED",
       transfer_to: "Don''t Transfer",
@@ -413,119 +361,233 @@ document.addEventListener("DOMContentLoaded", function (e) {
     let message = {
       action: "sendFlags",
       data: flag,
+      blockContent: block,
     };
+
     chrome.runtime.sendMessage(message, (response) => {
-      console.log(response);
+      // console.log(response);
     });
     // console.log("Flag triggered");
   }
+});
 
-  /**
-   * Function to make the tab full screen
-   */
-  function makeTabFullScreen() {
-    const docElm = document.documentElement;
+/**
+ * Function to make the tab full screen
+ */
+function makeTabFullScreen() {
 
-    const isFullScreen =
-      document.fullscreenElement ||
-      document.mozFullScreenElement ||
-      document.webkitFullscreenElement ||
-      document.msFullscreenElement;
+  if (window.self !== window.top) {
+    console.log("Inside an iframe. Skipping fullscreen popup.");
+    return;
+  }
+  
+  const docElm = document.documentElement;
 
-    // Check if already showing popup
-    if (document.getElementById("fs-confirm-overlay")) {
-      // console.log("Popup already exists.");
-      return;
-    }
+  const isFullScreen =
+    document.fullscreenElement ||
+    document.mozFullScreenElement ||
+    document.webkitFullscreenElement ||
+    document.msFullscreenElement;
 
-    if (
-      loginStatus === true &&
-      examStatus === "inProgress" &&
-      requestFeatures.includes("FULLSCREEN_DETECTION") &&
-      !isFullScreen
-    ) {
-      const dialogWrapper = document.createElement("div");
-      dialogWrapper.id = "fs-confirm-overlay";
-      dialogWrapper.innerHTML = `
-        <div class="fs-confirm-overlay">
-          <div class="fs-confirm-box">
-            ${logo}
-            <h3>In order to continue your exam, please allow full screen mode</h3>
-            <div class="fs-confirm-buttons">
-              <button id="fs-accept">Allow</button>
-              <button id="fs-reject">Quit Exam</button>
-            </div>
+  // Check if already showing popup
+  if (
+    document.getElementById("fs-confirm-overlay") ||
+    document.getElementById("extension-warning-overlay")
+  ) {
+    console.log("Another popup is already open.");
+    return;
+  }
+
+  if (
+    loginStatus === true &&
+    examStatus === "inProgress" &&
+    requestFeatures.includes("FULLSCREEN_DETECTION") &&
+    !isFullScreen
+  ) {
+    const dialogWrapper = document.createElement("div");
+    dialogWrapper.id = "fs-confirm-overlay";
+    dialogWrapper.innerHTML = `
+      <div class="fs-confirm-overlay">
+        <div class="fs-confirm-box">
+          ${logo}
+          <h3>In order to continue your exam, please allow full screen mode</h3>
+          <div class="fs-confirm-buttons">
+            <button id="fs-accept">Allow</button>
+            <button id="fs-reject">Quit Exam</button>
           </div>
         </div>
-      `;
+      </div>
+    `;
 
-      const style = document.createElement("style");
-      style.textContent = `
-        .fs-confirm-overlay {
-          position: fixed;
-          top: 0; left: 0;
-          width: 100vw;
-          height: 100vh;
-          background-color: rgba(0,0,0,0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 9999;
-        }
-        .fs-confirm-box {
-          display: flex;
-          flex-direction: column !important;
-          align-items: center;
-          justify-content: center;
-          background: white;
-          padding: 20px 30px;
-          border-radius: 6px;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-          text-align: center;
-          font-family: Arial, sans-serif;
-        }
-        .fs-confirm-buttons {
-          margin-top: 15px;
-        }
-        .fs-confirm-buttons button {
-          border: 1px solid black;
-          border-radius: 5px;
-          margin: 0 8px;
-          padding: 8px 16px;
-          cursor: pointer;
-        }
-      `;
-      document.head.appendChild(style);
-      document.body.appendChild(dialogWrapper);
-
-      document.getElementById("fs-accept").onclick = () => {
-        if (docElm.requestFullscreen) {
-          docElm.requestFullscreen();
-        } else if (docElm.mozRequestFullScreen) {
-          docElm.mozRequestFullScreen();
-        } else if (docElm.webkitRequestFullscreen) {
-          docElm.webkitRequestFullscreen();
-        } else if (docElm.msRequestFullscreen) {
-          docElm.msRequestFullscreen();
-          disabledEvent(docElm);
-        }
-        dialogWrapper.remove();
-        console.log("Entered fullscreen mode.");
-      };
-
-      document.getElementById("fs-reject").onclick = () => {
-        dialogWrapper.remove();
-        console.log("User rejected fullscreen.");
-      };
-    } else {
-      if (isFullScreen) {
-        // console.log("Already in fullscreen");
-      } else {
-        // console.log("Exam is not running or fullscreen not requested");
+    const style = document.createElement("style");
+    style.textContent = `
+      .fs-confirm-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
       }
+      .fs-confirm-box {
+        display: flex;
+        flex-direction: column !important;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        padding: 20px 30px;
+        border-radius: 6px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        text-align: center;
+        font-family: Arial, sans-serif;
+      }
+      .fs-confirm-buttons {
+        margin-top: 15px;
+      }
+      .fs-confirm-buttons button {
+        border: 1px solid black;
+        border-radius: 5px;
+        margin: 0 8px;
+        padding: 8px 16px;
+        cursor: pointer;
+      }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(dialogWrapper);
+
+    document.getElementById("fs-accept").onclick = () => {
+      if (docElm.requestFullscreen) {
+        docElm.requestFullscreen();
+      } else if (docElm.mozRequestFullScreen) {
+        docElm.mozRequestFullScreen();
+      } else if (docElm.webkitRequestFullscreen) {
+        docElm.webkitRequestFullscreen();
+      } else if (docElm.msRequestFullscreen) {
+        docElm.msRequestFullscreen();
+        disabledEvent(docElm);
+      }
+      dialogWrapper.remove();
+      // console.log("Entered fullscreen mode.");
+    };
+
+    document.getElementById("fs-reject").onclick = () => {
+      dialogWrapper.remove();
+      console.log("User rejected fullscreen.");
+    };
+  } else {
+    if (isFullScreen) {
+      // console.log("Already in fullscreen");
+    } else {
+      // console.log("Exam is not running or fullscreen not requested");
     }
   }
-});
+}
+
+/**
+ * additional extensions popup
+ */
+function additionalExtensionpopup(extensionList) {
+
+  if (window.self !== window.top) {
+    console.log("Inside an iframe. Skipping extension popup.");
+    return;
+  }
+
+  if(extensionList && extensionList.length == 0){
+    const element = document.getElementById("extension-warning-overlay");
+    if(element){
+      element.remove();
+    }
+  }
+
+  if (
+    document.getElementById("extension-warning-overlay") ||
+    document.getElementById("fs-confirm-overlay") || extensionList.length == 0
+  ) {
+    return;
+  }
+  const dialogWrapper = document.createElement("div");
+  dialogWrapper.id = "extension-warning-overlay";
+  dialogWrapper.innerHTML = `
+    <div class="fs-confirm-overlay">
+      <div class="fs-confirm-box">
+        ${logo}
+        <h3>Examlock lite has detected additional extensions on your browser. Please remove them to continue.</h3>
+        <ul id="extension-list"></ul>
+        <div class="fs-confirm-buttons">
+          <button id="ext-ok">Uninstall</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const listContainer = dialogWrapper.querySelector("#extension-list");
+  extensionList.forEach((ext) => {
+    const listItem = document.createElement("li");
+    listItem.textContent = ext;
+    listContainer.appendChild(listItem);
+  });
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .fs-confirm-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .fs-confirm-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      padding: 20px 30px;
+      border-radius: 6px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    .fs-confirm-box ul {
+      text-align: left;
+      margin: 10px 0;
+      padding-left: 20px;
+      list-style-type: circle;
+    }
+    .fs-confirm-buttons {
+      margin-top: 15px;
+    }
+    .fs-confirm-buttons button {
+      border: 1px solid black;
+      border-radius: 5px;
+      margin: 0 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+  `;
+
+  document.head.appendChild(style);
+  document.body.appendChild(dialogWrapper);
+
+  document.getElementById("ext-ok").addEventListener("click", () => {
+    let message = {
+      action: "unistall-exten",
+    };
+    chrome.runtime.sendMessage(message, (response) => {
+      // console.log(response);
+    });
+    document.body.removeChild(dialogWrapper);
+  });
+}
+
 
 /**
  * disabled event function
@@ -552,8 +614,20 @@ chrome.runtime.onMessage.addListener(function (message) {
     const data = {
       trigger: "live-flag",
       flag: message.flag,
+      block: message.blockExam,
+      // block: false
     };
+    console.log(data);
     window.postMessage(data, "*");
+  } else if (message.type === "activate-fullscreen") {
+    setTimeout(() => {
+      console.log(message.type);
+      makeTabFullScreen();
+    }, 2000);
+  } else if (message.type === "prelim-exten") {
+      additionalExtensionpopup(message.data);
+  } else if ( message.type === "setInterval-trigger") {
+    getSecurityFeatures();
   }
 });
 
@@ -636,9 +710,9 @@ document.addEventListener(
 //   Trigger();
 // }, 3000);
 
-setInterval(() => {
-  getSecurityFeatures();
-}, 5000);
+// setInterval(() => {
+//   getSecurityFeatures();
+// }, 5000);
 
 //======================================================================
 // @To be reused

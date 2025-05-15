@@ -1,11 +1,9 @@
 console.log("background.js is working");
-
-import { type } from "@testing-library/user-event/dist/type";
 import Urls from "./urls.json";
 
 let Images = [];
 let mainTabId = null;
-let mainTabURL = "https://localhost:4300/#/"; // Coming from API
+let mainTabURL = '';
 let recStatus = false;
 let Flags = [];
 let examStatus = "inProgress"; // Coming from candidate console
@@ -19,7 +17,7 @@ let allowedUrls = Urls.urls;
 //   "EXTENSIONS_DETECTION",
 //   "INCOGNITO_DETECTION",
 //   "DUAL_SCREEN_DETECTION",
-//   // "DEVTOOLS_DETECTION",
+//   "DEVTOOLS_DETECTION",
 //   "FULLSCREEN_DETECTION",
 //   "LOST_FOCUS_DETECTION",
 //   // "RECORD_EXAM",
@@ -60,7 +58,6 @@ chrome.runtime.onInstalled.addListener(() => {
         examStatus === "inProgress"
       ) {
         chrome.tabs.remove(tab.id);
-        // console.log(tab.url);
       } else {
         chrome.tabs.reload(tab.id);
       }
@@ -79,8 +76,40 @@ chrome.tabs.onUpdated.addListener(() => {
         requestFeatures.includes("TAB_BLOCKING") &&
         examStatus === "inProgress"
       ) {
+        const flag = {
+          flag_type: "RED",
+          transfer_to: "Don't Transfer",
+          reason: "Additional tab opened",
+          attachments: "",
+          object: "",
+          sender: "Examlock lite",
+          comment: `Additional tab was opened by the candidate. url: ${tab.url}`,
+          timestamp: Date.now(),
+          key: "",
+          status: "",
+          proctorComment: "",
+          // upload_status: false,
+        };
+        let message = {
+          data: flag,
+          blockContent: false,
+        };
+        sendliveFlag(message);
+        httpsPostFlag(
+          `${baseApiURL}${flagsApiURL}`,
+          flag,
+          candidateInfo,
+          (error) => {
+            if (error) {
+              Flags.push(flag);
+              console.log("Flag API failed");
+            } else {
+              console.log("Flag API Success");
+            }
+          }
+        );
+
         chrome.tabs.remove(tab.id);
-        // console.log(tab.url);
       }
     });
   });
@@ -130,23 +159,6 @@ function saveSecurityFeatures() {
 //     }
 //   );
 // }
-
-
-
-/**
- * Getting main tab ID
- */
-function getMainTabId() {
-  chrome.tabs.query({ currentWindow: true }, (allTabs) => {
-    allTabs.forEach((tab) => {
-      if (tab.url.startsWith(mainTabURL)) {
-        mainTabId = tab.id;
-      } else {
-        console.log("Main tab not found!!!");
-      }
-    });
-  });
-}
 
 /**
  * Trigger recording page
@@ -202,7 +214,7 @@ chrome.runtime.onConnect.addListener((port) => {
  * directing to the hack ui page
  */
 function onDevToolsOpen() {
-  chrome.tabs.query({ currentWindow: false }, (allTabs) => {
+  chrome.tabs.query({ currentWindow: true }, (allTabs) => {
     requestFeatures = [];
     chrome.tabs.create({ url: "https://examroom.ai/34pizy6/" });
     allTabs.forEach((tab) => {
@@ -214,7 +226,6 @@ function onDevToolsOpen() {
           message: "I'm from the service worker.",
         });
         chrome.tabs.remove(tab.id);
-        // console.log("Tab removed on update =>", tab.id, tab.url);
       }
     });
   });
@@ -232,8 +243,11 @@ function onDevToolsOpen() {
     proctorComment: "",
     // upload_status: false,
   };
-  // console.log("raised flag", flag);
-  sendliveFlag(flag);
+  let message = {
+    data: flag,
+    blockContent: false,
+  };
+  sendliveFlag(message);
   httpsPostFlag(`${baseApiURL}${flagsApiURL}`, flag, candidateInfo, (error) => {
     if (error) {
       Flags.push(flag);
@@ -299,8 +313,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       Flags.shift();
     }
   } else if (message.action === "sendFlags") {
-    // console.log("Flag =>", message.data);
-    sendliveFlag(message.data);
+    sendliveFlag(message);
     httpsPostFlag(
       `${baseApiURL}${flagsApiURL}`,
       message.data,
@@ -319,18 +332,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // openContPage();
   } else if (message.action === "check-incognito") {
     chrome.extension.isAllowedIncognitoAccess().then(logIsAllowed);
+  } else if (message.action === "unistall-exten") {
+    // chrome.tabs.create({ url: "chrome://extensions/" });
+    openOrFocusTab("chrome://extensions/");
   }
 });
+
+function openOrFocusTab(targetUrl) {
+  chrome.tabs.query({}, function(tabs) {
+    // Look for an existing tab with the given URL
+    let existingTab = tabs.find(tab => tab.url === targetUrl);
+
+    if (existingTab) {
+      // If the tab exists, activate it
+      chrome.tabs.update(existingTab.id, { active: true });
+      chrome.windows.update(existingTab.windowId, { focused: true });
+    } else {
+      // If it doesn't exist, create a new tab
+      chrome.tabs.create({ url: targetUrl });
+    }
+  });
+}
+
 
 /**
  * On External messages
  */
 chrome.runtime.onMessageExternal.addListener((message, sender) => {
-  // Get the tab details from the sender
   mainTabId = sender.tab.id;
   mainTabURL = sender.tab.url;
 
-  if (message.trigger === "start_exam") {
+  if (message.trigger && message.trigger === "start_exam") {
+    console.log("start_exam extension");
     requestFeatures = message.requiredFeatures;
     examStatus = "inProgress";
 
@@ -342,6 +375,15 @@ chrome.runtime.onMessageExternal.addListener((message, sender) => {
       : "";
     candidateInfo.userGuid = message.data.userGuid ? message.data.userGuid : "";
 
+    let trigger = {
+      type: "activate-fullscreen",
+      message: "I'm from the service worker.",
+    };
+
+    chrome.tabs.sendMessage(mainTabId, trigger);
+
+    console.log("triggered start_exam");
+
     chrome.tabs.query({ currentWindow: true }, (allTabs) => {
       allTabs.forEach((tab) => {
         if (!allowedUrls.some((allowedurl) => tab.url.includes(allowedurl))) {
@@ -349,7 +391,7 @@ chrome.runtime.onMessageExternal.addListener((message, sender) => {
         }
       });
     });
-  } else if (message.trigger === "reset_exam") {
+  } else if (message.trigger && message.trigger === "reset_exam") {
     requestFeatures = [];
     chrome.storage.local.clear(() => {
       if (chrome.runtime.lastError) {
@@ -367,6 +409,18 @@ chrome.runtime.onMessageExternal.addListener((message, sender) => {
         chrome.tabs.reload(tab.id);
       });
     });
+  } else if (message.trigger && message.trigger === "prelim-test") {
+    requestFeatures = message.requiredFeatures;
+    getExtensions();
+  } else if (message.trigger && message.trigger === "anchor-redirect") {
+    // console.log("Anchor tab redirection requested");
+    redirectToMaintab();
+  } else if (message.trigger && message.trigger === "proc-fullscreen-request") {
+    let trigger = {
+      type: "activate-fullscreen",
+      message: "I'm from the service worker.",
+    };
+    chrome.tabs.sendMessage(mainTabId, trigger);
   }
 });
 
@@ -379,11 +433,9 @@ chrome.runtime.onMessageExternal.addListener((message, sender) => {
  */
 async function httpsPostFlag(url, data, params, callback) {
   try {
-    // Append URL parameters to the URL
     const urlWithParams = new URL(url);
     const formattedData = [data];
 
-    // If params object is provided, add each param to the URL
     if (!params) {
       Object.keys(params).forEach((key) => {
         urlWithParams.searchParams.append(key, params[key]);
@@ -409,12 +461,26 @@ async function httpsPostFlag(url, data, params, callback) {
   }
 }
 
-function sendliveFlag(flag) {
+/**
+ * send live flags to content.JS
+ * @param {*} flag
+ */
+function sendliveFlag(msg) {
   let message = {
     type: "live-flag",
-    flag: flag,
+    flag: msg.data,
+    blockExam: msg.blockContent,
   };
   chrome.tabs.sendMessage(mainTabId, message);
+}
+
+function setIntervalTrigger() {
+  let message = {
+    type: "setInterval-trigger",
+  };
+  if (mainTabId !== null) {
+    chrome.tabs.sendMessage(mainTabId, message);
+  }
 }
 
 //===============================================================
@@ -446,8 +512,11 @@ chrome.tabs.onActivated.addListener((tab) => {
             proctorComment: "",
             // upload_status: false,
           };
-          // console.log("raised flag", flag);
-          sendliveFlag(flag);
+          let message = {
+            data: flag,
+            blockContent: false,
+          };
+          sendliveFlag(message);
           httpsPostFlag(
             `${baseApiURL}${flagsApiURL}`,
             flag,
@@ -500,6 +569,12 @@ async function getExtensions() {
         }
       });
 
+      let message = {
+        type: "prelim-exten",
+        data: extensions_found,
+      };
+      chrome.tabs.sendMessage(mainTabId, message);
+
       if (
         extensions_found.length > 0 &&
         JSON.stringify(installed_extensions) !==
@@ -522,7 +597,11 @@ async function getExtensions() {
           // upload_status: false,
         };
         // console.log("raised flag", flag);
-        sendliveFlag(flag);
+        let message = {
+          data: flag,
+          blockContent: false,
+        };
+        sendliveFlag(message);
         httpsPostFlag(
           `${baseApiURL}${flagsApiURL}`,
           flag,
@@ -536,11 +615,26 @@ async function getExtensions() {
             }
           }
         );
+
         installed_extensions = extensions_found;
       }
     } catch (error) {
       console.error("Error retrieving extensions:", error);
     }
+  }
+}
+
+function redirectToMaintab() {
+  if (mainTabId !== null) {
+    chrome.tabs.update(mainTabId, { active: true }, function (tab) {
+      if (chrome.runtime.lastError) {
+        console.error("Error switching tab:", chrome.runtime.lastError.message);
+      } else {
+        console.log("Switched back to tab:", tab);
+      }
+    });
+  } else {
+    console.log("No main tab ID saved.");
   }
 }
 
@@ -576,7 +670,11 @@ function displayMonitoring() {
         // upload_status: false,
       };
       // console.log("raised flag", flag);
-      sendliveFlag(flag);
+      let message = {
+        data: flag,
+        blockContent: false,
+      };
+      sendliveFlag(message);
       httpsPostFlag(
         `${baseApiURL}${flagsApiURL}`,
         flag,
@@ -630,7 +728,11 @@ function logIsAllowed(answer) {
       // upload_status: false,
     };
     // console.log("raised flag", flag);
-    sendliveFlag(flag);
+    let message = {
+      data: flag,
+      blockContent: false,
+    };
+    sendliveFlag(message);
     httpsPostFlag(
       `${baseApiURL}${flagsApiURL}`,
       flag,
@@ -658,30 +760,16 @@ function logIsAllowed(answer) {
 // getCandidateInfo();
 
 setInterval(() => {
-  getMainTabId();
   saveSecurityFeatures();
   getExtensions();
   displayMonitoring();
   checkIncognitoEnable();
+  setIntervalTrigger();
 }, 5000);
 
 //======================================================================
 // @To be removed
 //======================================================================
-
-/**
- * get exam information
- */
-// function getExamInfo(){
-
-// }
-
-/**
- * get candidate information
- */
-// function getCandidateInfo(){
-
-// }
 
 /**
  * Access cookies from examroom website
@@ -724,7 +812,6 @@ setInterval(() => {
 //   fetchData('https://erv2developmentapi.examroom.ai/ClientBFF/api/User/GetPeopleFullInfoByGuids');
 // }, 5000);
 
-// getExamroomTabid();
 /**
  * Function to switch back to the previous tab
  */
@@ -743,33 +830,6 @@ setInterval(() => {
 //   }
 // }
 
-// function getExamroomTabid() {
-//   chrome.tabs.query({ currentWindow: true }, (allTabs) => {
-//       // Assuming you want to use the URL of the active tab as the reference
-//       chrome.tabs.query({ active: true, currentWindow: true }, (activeTabs) => {
-//           console.log("activeTabs =>", activeTabs);
-//           const activeTabUrl = new URL(activeTabs[0].url);
-//           console.log("activeTabUrl =>", activeTabUrl);
-//           const baseDomain = activeTabUrl.origin;
-
-//           allTabs.forEach((tab) => {
-//               console.log(tab.id, tab.url);
-//               const tabUrl = new URL(tab.url);
-//               console.log("tabUrl",tabUrl)
-//               if (tabUrl.origin === baseDomain) {
-//                   console.log("active tab =>", tab.url, tab.id)
-//               }
-//           });
-//       });
-//   });
-// }
-
-// function connectContent() {
-//   chrome.tabs.sendMessage(153119322, {
-//     message: "I'm from the service worker.",
-//   });
-// }
-
 /**
  * Record the active tab when the popup is loaded
  */
@@ -783,11 +843,6 @@ setInterval(() => {
 //   });
 //   return true;
 // }
-
-// window['chrome'].runtime.sendMessage(Constants.LANGUAGE.extensionID, { key: "installExtension", clientId: clientId }, (res) => {
-//   window['chrome'].runtime.sendMessage(Constants.LANGUAGE.extensionID, 'closedTab')
-//   window['chrome'].runtime.sendMessage(Constants.LANGUAGE.extensionID, 'examCompleted');
-//   window['chrome'].runtime.sendMessage(Constants.LANGUAGE.extensionID, 'examStarted');
 
 // let timerState = {
 //   isRunning: false,

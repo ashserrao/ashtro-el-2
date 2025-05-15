@@ -58,12 +58,14 @@ function Network() {
               <span className="mx-1" id="download-speed">
                 Loading...
               </span>
-              <img
-                className="my-auto h-4"
-                id="download-req"
-                src="/assets/loading.gif"
-                alt="speed-loader"
-              />
+              {/*
+                <img
+                  className="my-auto h-4"
+                  id="download-req"
+                  src="/assets/loading.gif"
+                  alt="speed-loader"
+                />
+               */}
             </div>
             <div className="my-1 flex flex-wrap">
               <img src="/assets/globe.svg" alt="globe" />
@@ -72,12 +74,14 @@ function Network() {
               <span className="mx-1" id="upload-speed">
                 Loading...
               </span>
-              <img
-                className="my-auto h-4"
-                id="upload-req"
-                src="/assets/loading.gif"
-                alt="speed-loader"
-              />
+              {/*
+                <img
+                  className="my-auto h-4"
+                  id="upload-req"
+                  src="/assets/loading.gif"
+                  alt="speed-loader"
+                />
+               */}
             </div>
             <div className="my-1 flex flex-wrap">
               <img src="/assets/Screen Share.svg" alt="screen-logo" />
@@ -92,12 +96,14 @@ function Network() {
                   <span>Not compatible</span>
                 )}
               </span>
-              <img
-                className="my-auto h-4"
-                id="RTC-req"
-                src="/assets/loading.gif"
-                alt="webrtc-loader"
-              />
+              {/*
+                <img
+                  className="my-auto h-4"
+                  id="RTC-req"
+                  src="/assets/loading.gif"
+                  alt="webrtc-loader"
+                />
+               */}
             </div>
           </div>
         </div>

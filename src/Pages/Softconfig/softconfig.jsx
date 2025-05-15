@@ -172,7 +172,9 @@ function Softconfig() {
               <span class="mx-1" id="os-check">
                 {os}
               </span>
-              <img class="my-auto h-4" id="os-req" src="/assets/loading.gif" />
+              {/* 
+                <img class="my-auto h-4" id="os-req" src="/assets/loading.gif" />
+              */}
             </div>
             <div class="my-1 flex flex-wrap">
               <img src="/assets/globe.svg" />
@@ -181,11 +183,13 @@ function Softconfig() {
               <span class="mx-1" id="browser-check">
                 {browserVersion}
               </span>
+              {/* 
               <img
                 class="my-auto h-4"
                 id="brow-req"
                 src="/assets/loading.gif"
               />
+              */}
             </div>
             <div class="my-1 flex flex-wrap">
               <img src="/assets/globe.svg" />
@@ -194,7 +198,9 @@ function Softconfig() {
               <span class="mx-1" id="net-stat">
                 {networkStatus}
               </span>
-              <img class="my-auto h-4" id="net-req" src="/assets/loading.gif" />
+              {/* 
+                <img class="my-auto h-4" id="net-req" src="/assets/loading.gif" />
+              */}
             </div>
           </div>
         </div>

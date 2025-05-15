@@ -4,7 +4,7 @@
     "edge://",
     "examroom.ai",
     "chrome-extension://",
-    "https://testdeliveryconsole.examroom.ai/#/auth/login",
+    "https://testdeliveryconsole.examroom.ai/",
     "https://erv2devcandidate.examroom.ai/",
     "https://nrbdevcandidate.examroom.ai/",
     "http://localhost:5173/",
@@ -14,5 +14,8 @@
   "backApi": {
     "baseApiURL": "https://erv2developmentapi.examroom.ai/CandidateBFF/api",
      "flagsApiURL": "/Flags/AddFlagsForExtension"
-  }
+  },
+  "reference_urls_bcia": [
+    "https://provexam.com/"
+  ]
 }
