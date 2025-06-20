@@ -6,9 +6,11 @@ import Content from "./content";
 import { StateProvider } from "./Contentstate";
 
 const loginStatus = true;
-let examStatus = "inProgress";
+// let examStatus = "Scheduled";
 let requestFeatures = [];
 let devRemove = false;
+let listenersActive = false;
+let tdsURL = "https://testconsole"
 let logo = `<svg
 width="26"
 height="29"
@@ -111,16 +113,6 @@ xmlns="http://www.w3.org/2000/svg"
 </svg>`;
 
 /**
- * Prevent direct window exit confirmation
- */
-// window.addEventListener("beforeunload", function (e) {
-//   if (devRemove === false) {
-//     e.preventDefault();
-//     e.returnValue = "";
-//   }
-// });
-
-/**
  * get security features from background.js
  */
 function getSecurityFeatures() {
@@ -131,38 +123,39 @@ function getSecurityFeatures() {
         requestFeatures.push(obj[key]);
       }
     }
+    addListeners(requestFeatures);
   });
 }
 
 /**
  * Trigger video function
  */
-function Trigger() {
-  let rootElement = document.getElementById("root");
+// function Trigger() {
+//   let rootElement = document.getElementById("root");
 
-  if (!rootElement) {
-    rootElement = document.createElement("div");
-    rootElement.id = "root";
-    document.body.appendChild(rootElement);
-  }
+//   if (!rootElement) {
+//     rootElement = document.createElement("div");
+//     rootElement.id = "root";
+//     document.body.appendChild(rootElement);
+//   }
 
-  ReactDOM.render(
-    <React.StrictMode>
-      <StateProvider>
-        <Content />
-      </StateProvider>
-    </React.StrictMode>,
-    rootElement
-  );
-  return true;
-}
+//   ReactDOM.render(
+//     <React.StrictMode>
+//       <StateProvider>
+//         <Content />
+//       </StateProvider>
+//     </React.StrictMode>,
+//     rootElement
+//   );
+//   return true;
+// }
 
 //===============================================================
 // @DOM listener
 //===============================================================
 document.addEventListener("DOMContentLoaded", function (e) {
   let spaceCount = 0;
-  const body = document.querySelector("body");
+  // const body = document.querySelector("body");
 
   /**
    * unblock content function
@@ -207,8 +200,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
   document.addEventListener("keydown", function (e) {
     if (
       requestFeatures.includes("KEY_BLOCKER") &&
-      loginStatus === true &&
-      examStatus === "inProgress"
+      loginStatus === true
+      // examStatus === "inProgress"
     ) {
       if (e.altKey && "tab".indexOf(e.key) !== -1) {
         let value = {
@@ -217,7 +210,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed alt and ${e.key} key`,
-          JSON.stringify(value), true
+          JSON.stringify(value),
+          true
         );
       } else if (e.ctrlKey && "tab".indexOf(e.key) !== -1) {
         let value = {
@@ -226,7 +220,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed ctrl and ${e.key} key`,
-          JSON.stringify(value), true
+          JSON.stringify(value),
+          true
         );
       } else if (
         (e.metaKey && e.key == "PrintScreen") ||
@@ -238,7 +233,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
         disabledEvent(e);
         actionLogger(
           `Restricted key print screen detected`,
-          JSON.stringify(value), true
+          JSON.stringify(value),
+          true
         );
       } else if (e.ctrlKey && e.shiftKey) {
         let value = {
@@ -247,7 +243,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed ctrl and ${e.key}`,
-          JSON.stringify(value), true
+          JSON.stringify(value),
+          true
         );
       } else if (e.shiftKey && e.metaKey) {
         let value = {
@@ -256,7 +253,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed shift and ${e.metaKey}`,
-          JSON.stringify(value), false
+          JSON.stringify(value),
+          false
         );
       } else if (e.ctrlKey && e.shiftKey && "34".indexOf(e.key)) {
         let value = {
@@ -265,7 +263,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed ctrl key, shift key and ${e.key} key`,
-          JSON.stringify(value), true
+          JSON.stringify(value),
+          true
         );
       } else if (e.ctrlKey && e.shiftKey) {
         let value = {
@@ -274,7 +273,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed ctrl key, shift key and ${e.key}`,
-          JSON.stringify(value), true
+          JSON.stringify(value),
+          true
         );
       } else if (
         [
@@ -294,7 +294,11 @@ document.addEventListener("DOMContentLoaded", function (e) {
           remark: `Content blocked since the candidate pressed ${e.key} key which is not allowed in the url ${window.location.href}`,
         };
         disabledEvent(e);
-        actionLogger(`Restricted key pressed ${e.key}`, JSON.stringify(value), true);
+        actionLogger(
+          `Restricted key pressed ${e.key}`,
+          JSON.stringify(value),
+          true
+        );
       } else if (
         [
           "F1",
@@ -316,7 +320,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
         };
         actionLogger(
           `Restricted key pressed ${e.key} key`,
-          JSON.stringify(value), true
+          JSON.stringify(value),
+          true
         );
       } else if (e.ctrlKey && "cvxspwuaz".indexOf(e.key) !== -1) {
         let value = {
@@ -325,7 +330,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
         disabledEvent(e);
         actionLogger(
           `Restricted key pressed ctrl key and ${e.key}`,
-          JSON.stringify(value), true
+          JSON.stringify(value),
+          true
         );
       } else if (e.key === " ") {
         spaceCount++;
@@ -364,6 +370,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
       blockContent: block,
     };
 
+    console.log(message);
+
     chrome.runtime.sendMessage(message, (response) => {
       // console.log(response);
     });
@@ -375,12 +383,11 @@ document.addEventListener("DOMContentLoaded", function (e) {
  * Function to make the tab full screen
  */
 function makeTabFullScreen() {
-
-  if (window.self !== window.top) {
+  if (window.location.href.startsWith(tdsURL)) {
     console.log("Inside an iframe. Skipping fullscreen popup.");
     return;
   }
-  
+
   const docElm = document.documentElement;
 
   const isFullScreen =
@@ -400,7 +407,7 @@ function makeTabFullScreen() {
 
   if (
     loginStatus === true &&
-    examStatus === "inProgress" &&
+    // examStatus === "inProgress" &&
     requestFeatures.includes("FULLSCREEN_DETECTION") &&
     !isFullScreen
   ) {
@@ -413,11 +420,10 @@ function makeTabFullScreen() {
           <h3>In order to continue your exam, please allow full screen mode</h3>
           <div class="fs-confirm-buttons">
             <button id="fs-accept">Allow</button>
-            <button id="fs-reject">Quit Exam</button>
           </div>
         </div>
-      </div>
-    `;
+      </div>`;
+    // <button id="fs-reject">Quit Exam</button>
 
     const style = document.createElement("style");
     style.textContent = `
@@ -473,10 +479,10 @@ function makeTabFullScreen() {
       // console.log("Entered fullscreen mode.");
     };
 
-    document.getElementById("fs-reject").onclick = () => {
-      dialogWrapper.remove();
-      console.log("User rejected fullscreen.");
-    };
+    // document.getElementById("fs-reject").onclick = () => {
+    //   dialogWrapper.remove();
+    //   console.log("User rejected fullscreen.");
+    // };
   } else {
     if (isFullScreen) {
       // console.log("Already in fullscreen");
@@ -490,22 +496,21 @@ function makeTabFullScreen() {
  * additional extensions popup
  */
 function additionalExtensionpopup(extensionList) {
-
-  if (window.self !== window.top) {
-    console.log("Inside an iframe. Skipping extension popup.");
+  if (window.location.href.startsWith(tdsURL)) {
     return;
   }
 
-  if(extensionList && extensionList.length == 0){
+  if (extensionList && extensionList.length == 0) {
     const element = document.getElementById("extension-warning-overlay");
-    if(element){
+    if (element) {
       element.remove();
     }
   }
 
   if (
     document.getElementById("extension-warning-overlay") ||
-    document.getElementById("fs-confirm-overlay") || extensionList.length == 0
+    document.getElementById("fs-confirm-overlay") ||
+    extensionList.length == 0
   ) {
     return;
   }
@@ -588,7 +593,6 @@ function additionalExtensionpopup(extensionList) {
   });
 }
 
-
 /**
  * disabled event function
  */
@@ -617,7 +621,6 @@ chrome.runtime.onMessage.addListener(function (message) {
       block: message.blockExam,
       // block: false
     };
-    console.log(data);
     window.postMessage(data, "*");
   } else if (message.type === "activate-fullscreen") {
     setTimeout(() => {
@@ -625,79 +628,105 @@ chrome.runtime.onMessage.addListener(function (message) {
       makeTabFullScreen();
     }, 2000);
   } else if (message.type === "prelim-exten") {
-      additionalExtensionpopup(message.data);
-  } else if ( message.type === "setInterval-trigger") {
+    additionalExtensionpopup(message.data);
+  } else if (message.type === "setInterval-trigger") {
     getSecurityFeatures();
+    // examStatus = message.examStatus;
   }
 });
 
 /**
- * Disable right-click
+ * Functions to add listeners [selection, right-click]
+ * @param {*} features
  */
-document.addEventListener(
-  "contextmenu",
-  function (e) {
-    if (requestFeatures.includes("RIGHTCLICK_DISABLING")) {
-      e.preventDefault();
-      let flag = {
-        flag_type: "RED",
-        transfer_to: "Don''t Transfer",
-        reason: "Right click detected",
-        attachments: "",
-        object: "",
-        comment: `Right click detected in the url ${window.location.href}`,
-        sender: "Examlock lite",
-        timestamp: Date.now(),
-        key: "",
-        status: "",
-        proctorComment: "",
-        // upload_status: false,
-      };
-      let message = {
-        action: "sendFlags",
-        data: flag,
-      };
-      chrome.runtime.sendMessage(message, (response) => {
-        // console.log(response);
-      });
+function addListeners(features) {
+  if (listenersActive === false && features !== undefined) {
+    // disable selection
+    if (features.includes("SELECTION_DISABLING")) {
+      document.addEventListener(
+        "selectstart",
+        function (e) {
+          e.preventDefault();
+          // let flag = {
+          //   flag_type: "RED",
+          //   transfer_to: "Don''t Transfer",
+          //   reason: "Extension Restricted activity",
+          //   attachments: "",
+          //   object: "",
+          //   comment: `Candidate selection detected in the url ${window.location.href}`,
+          //   sender: "Examlock lite",
+          //   timestamp: Date.now(),
+          //   key: "",
+          //   status: "",
+          //   proctorComment: ""
+          //   // upload_status: false,
+          // };
+          // let message = {
+          //   action: "sendFlags",
+          //   data: flag,
+          // };
+          // chrome.runtime.sendMessage(message, (response) => {
+          //   console.log(response);
+          // });
+        },
+        false
+      );
     }
-  },
-  false
-);
 
-/**
- * Disable text selection
- */
-document.addEventListener(
-  "selectstart",
-  function (e) {
-    if (requestFeatures.includes("SELECTION_DISABLING")) {
-      e.preventDefault();
-      // let flag = {
-      //   flag_type: "RED",
-      //   transfer_to: "Don''t Transfer",
-      //   reason: "Extension Restricted activity",
-      //   attachments: "",
-      //   object: "",
-      //   comment: `Candidate selection detected in the url ${window.location.href}`,
-      //   sender: "Examlock lite",
-      //   timestamp: Date.now(),
-      //   key: "",
-      //   status: "",
-      //   proctorComment: ""
-      //   // upload_status: false,
-      // };
-      // let message = {
-      //   action: "sendFlags",
-      //   data: flag,
-      // };
-      // chrome.runtime.sendMessage(message, (response) => {
-      //   console.log(response);
-      // });
+    // disable right-click
+    if (features.includes("RIGHTCLICK_DISABLING")) {
+      document.addEventListener(
+        "contextmenu",
+        function (e) {
+          e.preventDefault();
+          let flag = {
+            flag_type: "RED",
+            transfer_to: "Don''t Transfer",
+            reason: "Right click detected",
+            attachments: "",
+            object: "",
+            comment: `Right click detected in the url ${window.location.href}`,
+            sender: "Examlock lite",
+            timestamp: Date.now(),
+            key: "",
+            status: "",
+            proctorComment: "",
+            // upload_status: false,
+          };
+          let message = {
+            action: "sendFlags",
+            data: flag,
+          };
+
+          try {
+            chrome.runtime.sendMessage(message, (response) => {
+              // console.log(response);
+            });
+          } catch (e) {
+            console.log(e);
+          }
+        },
+        false
+      );
     }
-  },
-  false
-);
+
+    window.addEventListener("beforeunload", function (e) {
+      if (devRemove === false) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    });
+
+    listenersActive = true;
+  } else if (features.length === 0 && listenersActive === true) {
+    listenersActive = false;
+    window.removeEventListener("beforeunload");
+    document.removeEventListener("contextmenu");
+    document.removeEventListener("selectstart");
+  } else {
+    // console.log("something went wrong with add listeners");
+  }
+}
 
 //===============================================================
 // @On load runners
@@ -709,10 +738,6 @@ document.addEventListener(
 // setTimeout(() => {
 //   Trigger();
 // }, 3000);
-
-// setInterval(() => {
-//   getSecurityFeatures();
-// }, 5000);
 
 //======================================================================
 // @To be reused
@@ -748,7 +773,3 @@ document.addEventListener(
 // navigator.usb.addEventListener("disconnect", (event) => {
 //   console.log("USB device disconnected:", event.device);
 // });
-
-//======================================================================
-// @To be removed
-//======================================================================

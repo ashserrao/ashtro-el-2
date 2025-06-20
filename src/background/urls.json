@@ -2,8 +2,8 @@
   "urls": [
     "chrome://",
     "edge://",
-    "examroom.ai",
     "chrome-extension://",
+    "examroom.ai",
     "https://testdeliveryconsole.examroom.ai/",
     "https://erv2devcandidate.examroom.ai/",
     "https://nrbdevcandidate.examroom.ai/",

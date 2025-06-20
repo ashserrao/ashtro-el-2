@@ -1,7 +1,7 @@
 {
   "name": "Examlock lite",
   "description": "Helps you take your exams in a secured way.",
-  "version": "2.1.1",
+  "version": "2.1.4",
   "manifest_version": 3,
   "action": {
     "default_popup": "popup.html",
@@ -15,29 +15,22 @@
     "notifications",
     "tabs",
     "management",
-    "cookies",
     "storage",
-    "activeTab",
     "system.memory",
     "system.display",
     "system.cpu",
-    "browsingData",
     "desktopCapture",
-    "tabCapture",
-    "identity",
-    "windows",
-    "scripting",
-    "webRequest"
+    "windows"
   ],
   "background": {
     "service_worker": "background.bundle.js"
   },
   "externally_connectable": {
-    "matches": ["*://localhost/*"]
+    "matches": ["http://*/*", "https://*/*", "*://localhost/*"]
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": ["<all_urls>"],
       "run_at": "document_start",
       "all_frames": true,
       "css":["output.css"],

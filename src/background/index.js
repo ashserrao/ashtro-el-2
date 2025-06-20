@@ -1,66 +1,85 @@
 console.log("background.js is working");
 import Urls from "./urls.json";
 
-let Images = [];
+// Common variables =======================================================
 let mainTabId = null;
 let mainTabURL = '';
-let recStatus = false;
-let Flags = [];
-let examStatus = "inProgress"; // Coming from candidate console
+// let examStatus = "Scheduled"; // Coming from candidate console
 let allowedUrls = Urls.urls;
 // let requestFeatures = [
-//   "TAB_BLOCKING",
-//   "KEY_BLOCKER",
-//   "CONTENT_BLOCKER",
-//   "RIGHTCLICK_DISABLING",
-//   "SELECTION_DISABLING",
-//   "EXTENSIONS_DETECTION",
-//   "INCOGNITO_DETECTION",
-//   "DUAL_SCREEN_DETECTION",
-//   "DEVTOOLS_DETECTION",
-//   "FULLSCREEN_DETECTION",
-//   "LOST_FOCUS_DETECTION",
-//   // "RECORD_EXAM",
-//   // "CAPTURE_ID",
-//   // "CAPTURE_FACE",
-// ]; // Coming from API
-let requestFeatures = [];
-let installed_extensions = [];
-let number_of_display = 0;
-let incognitoTrigger = false;
-
-// For live
-// let baseApiURL = Urls.backApi.baseApiURL;
-// let flagsApiURL = Urls.backApi.flagsApiURL;
-
-// For testing
-let baseApiURL = "http://localhost:3000";
-let flagsApiURL = "/flags";
-
-let candidateSystemIP;
-let candidateInfo = {
-  tenantGuid: "",
-  userGuid: "",
-  personEventGuid: "",
-};
-// let examType = "online"; // Coming from candidate console
-
+  //   "TAB_BLOCKING",
+  //   "KEY_BLOCKER",
+  //   "CONTENT_BLOCKER",
+  //   "RIGHTCLICK_DISABLING",
+  //   "SELECTION_DISABLING",
+  //   "EXTENSIONS_DETECTION",
+  //   "INCOGNITO_DETECTION",
+  //   "DUAL_SCREEN_DETECTION",
+  //   "FULLSCREEN_DETECTION",
+  //   "LOST_FOCUS_DETECTION",
+  //   // "RECORD_EXAM",
+  //   // "CAPTURE_ID",
+  //   // "CAPTURE_FACE",
+  // ]; // Coming from API
+  let requestFeatures = [];
+  let installed_extensions = [];
+  let number_of_display = 0;
+  let incognitoTrigger = false;
+  
+  // For live
+  // let baseApiURL = Urls.backApi.baseApiURL;
+  // let flagsApiURL = Urls.backApi.flagsApiURL;
+  
+  // For testing
+  let baseApiURL = "http://localhost:3000";
+  let flagsApiURL = "/flags";
+  
+  let candidateSystemIP;
+  let candidateInfo = {
+    tenantGuid: "",
+    userGuid: "",
+    personEventGuid: "",
+  };
+  let examConductType = "Online"; // Coming from candidate console
+  
+  // Offline exten variables ====================================================
+  let recStatus = false;
+  let Images = [];
+  let Flags = [];
+    
 /**
  * on extension installation
  */
 chrome.runtime.onInstalled.addListener(() => {
+  // handles for current window
   chrome.tabs.query({ currentWindow: true }, (allTabs) => {
     allTabs.forEach((tab) => {
       const tabUrl = tab.url;
       if (
         !allowedUrls.some((allowedurl) => tabUrl.includes(allowedurl)) &&
-        requestFeatures.includes("TAB_BLOCKING") &&
-        examStatus === "inProgress"
+        requestFeatures.includes("TAB_BLOCKING")
+        // examStatus === "inProgress"
       ) {
         chrome.tabs.remove(tab.id);
       } else {
         chrome.tabs.reload(tab.id);
       }
+    });
+  });
+
+  // handles for other windows
+  chrome.tabs.query({ currentWindow: false }, (allTabs) => {
+    allTabs.forEach((tab) => {
+      // const tabUrl = tab.url;
+      // if (
+      //   !allowedUrls.some((allowedurl) => tabUrl.includes(allowedurl)) &&
+      //   requestFeatures.includes("TAB_BLOCKING")
+      //   // examStatus === "inProgress"
+      // ) {
+      chrome.tabs.remove(tab.id);
+      // } else {
+      //   chrome.tabs.reload(tab.id);
+      // }
     });
   });
 });
@@ -69,12 +88,81 @@ chrome.runtime.onInstalled.addListener(() => {
  * when candidate opens new tab
  */
 chrome.tabs.onUpdated.addListener(() => {
+  // handles for current window
   chrome.tabs.query({ currentWindow: true }, (allTabs) => {
     allTabs.forEach((tab) => {
       if (
         !allowedUrls.some((allowedurl) => tab.url.includes(allowedurl)) &&
-        requestFeatures.includes("TAB_BLOCKING") &&
-        examStatus === "inProgress"
+        requestFeatures.includes("TAB_BLOCKING")
+      ) {
+        const flag = {
+          flag_type: "RED",
+          transfer_to: "Don't Transfer",
+          reason: "Additional tab opened",
+          attachments: "",
+          object: "",
+          sender: "Examlock lite",
+          comment: `Additional tab was opened by the candidate. url: ${tab.url}`,
+          timestamp: Date.now(),
+          key: "",
+          status: "",
+          proctorComment: "",
+        };
+        let message = {
+          data: flag,
+          blockContent: false,
+        };
+        raiseFlag(message);
+        httpsPostFlag(
+          `${baseApiURL}${flagsApiURL}`,
+          flag,
+          candidateInfo,
+          (error) => {
+            if (error) {
+              Flags.push(flag);
+              console.log("Flag API failed");
+            } else {
+              console.log("Flag API Success");
+            }
+          }
+        );
+
+        chrome.tabs.remove(tab.id);
+      } 
+      
+      /**
+       * flagging extension page
+       */
+      if ( tab.url === "chrome://extensions/" && requestFeatures.includes("TAB_BLOCKING")) {
+        const flag = {
+          flag_type: "RED",
+          transfer_to: "Don't Transfer",
+          reason: "Extensions page opened",
+          attachments: "",
+          object: "",
+          sender: "Examlock lite",
+          comment: `Chrome extensions tab was opened`,
+          timestamp: Date.now(),
+          key: "",
+          status: "",
+          proctorComment: "",
+        };
+        let message = {
+          data: flag,
+          blockContent: false,
+        };
+        raiseFlag(message);
+      }
+    });
+  });
+
+  // handles for different windows
+  chrome.tabs.query({ currentWindow: false }, (allTabs) => {
+    allTabs.forEach((tab) => {
+      if (
+        !allowedUrls.some((allowedurl) => tab.url.includes(allowedurl)) &&
+        requestFeatures.includes("TAB_BLOCKING")
+        // examStatus === "inProgress"
       ) {
         const flag = {
           flag_type: "RED",
@@ -94,7 +182,7 @@ chrome.tabs.onUpdated.addListener(() => {
           data: flag,
           blockContent: false,
         };
-        sendliveFlag(message);
+        raiseFlag(message);
         httpsPostFlag(
           `${baseApiURL}${flagsApiURL}`,
           flag,
@@ -111,6 +199,30 @@ chrome.tabs.onUpdated.addListener(() => {
 
         chrome.tabs.remove(tab.id);
       }
+
+      /**
+       * flagging extension page
+       */
+      if ( tab.url === "chrome://extensions/" && requestFeatures.includes("TAB_BLOCKING")) {
+        const flag = {
+          flag_type: "RED",
+          transfer_to: "Don't Transfer",
+          reason: "Extensions page opened",
+          attachments: "",
+          object: "",
+          sender: "Examlock lite",
+          comment: `Chrome extensions tab was opened`,
+          timestamp: Date.now(),
+          key: "",
+          status: "",
+          proctorComment: "",
+        };
+        let message = {
+          data: flag,
+          blockContent: false,
+        };
+        raiseFlag(message);
+      }
     });
   });
 });
@@ -123,6 +235,10 @@ function saveSecurityFeatures() {
     chrome.storage.local.set({ [`requestFeature_${index}`]: feature });
   });
 }
+
+// function extensionPageFlagging() {
+
+// }
 
 /**
  * Function to create and show a push notification
@@ -199,8 +315,7 @@ function saveSecurityFeatures() {
  */
 chrome.runtime.onConnect.addListener((port) => {
   if (
-    port.name === "devtools" &&
-    requestFeatures.includes("DEVTOOLS_DETECTION")
+    port.name === "devtools"
   ) {
     port.onMessage.addListener((msg) => {
       if (msg.name === "openDevTools") {
@@ -214,21 +329,32 @@ chrome.runtime.onConnect.addListener((port) => {
  * directing to the hack ui page
  */
 function onDevToolsOpen() {
+
+  // handles for current window
   chrome.tabs.query({ currentWindow: true }, (allTabs) => {
     requestFeatures = [];
-    chrome.tabs.create({ url: "https://examroom.ai/34pizy6/" });
+    openOrFocusTab("https://examroom.ai/34pizy6/");
     allTabs.forEach((tab) => {
       if (tab.url === "https://examroom.ai/34pizy6/") {
         console.log("you tried to hack us page");
       } else {
-        chrome.tabs.sendMessage(tab.id, {
-          type: "devtools-found",
-          message: "I'm from the service worker.",
-        });
-        chrome.tabs.remove(tab.id);
+        // chrome.tabs.sendMessage(tab.id, {
+        //   type: "devtools-found",
+        //   message: "I'm from the service worker.",
+        // });
+        // chrome.tabs.remove(tab.id);
       }
     });
   });
+
+  // handles for different windows
+  chrome.tabs.query({ currentWindow: false }, (allTabs) => {
+    requestFeatures = [];
+    allTabs.forEach((tab) => {
+      // chrome.tabs.remove(tab.id);
+    });
+  });
+
   const flag = {
     flag_type: "RED",
     transfer_to: "Don't Transfer",
@@ -247,7 +373,7 @@ function onDevToolsOpen() {
     data: flag,
     blockContent: false,
   };
-  sendliveFlag(message);
+  raiseFlag(message);
   httpsPostFlag(`${baseApiURL}${flagsApiURL}`, flag, candidateInfo, (error) => {
     if (error) {
       Flags.push(flag);
@@ -313,7 +439,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       Flags.shift();
     }
   } else if (message.action === "sendFlags") {
-    sendliveFlag(message);
+    raiseFlag(message);
     httpsPostFlag(
       `${baseApiURL}${flagsApiURL}`,
       message.data,
@@ -333,22 +459,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.action === "check-incognito") {
     chrome.extension.isAllowedIncognitoAccess().then(logIsAllowed);
   } else if (message.action === "unistall-exten") {
-    // chrome.tabs.create({ url: "chrome://extensions/" });
     openOrFocusTab("chrome://extensions/");
   }
 });
 
+/**
+ * open a new url else opens if url is already open 
+ * @param {*} targetUrl 
+ */
 function openOrFocusTab(targetUrl) {
   chrome.tabs.query({}, function(tabs) {
-    // Look for an existing tab with the given URL
     let existingTab = tabs.find(tab => tab.url === targetUrl);
 
     if (existingTab) {
-      // If the tab exists, activate it
       chrome.tabs.update(existingTab.id, { active: true });
       chrome.windows.update(existingTab.windowId, { focused: true });
     } else {
-      // If it doesn't exist, create a new tab
       chrome.tabs.create({ url: targetUrl });
     }
   });
@@ -358,14 +484,14 @@ function openOrFocusTab(targetUrl) {
 /**
  * On External messages
  */
-chrome.runtime.onMessageExternal.addListener((message, sender) => {
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
   mainTabId = sender.tab.id;
   mainTabURL = sender.tab.url;
 
   if (message.trigger && message.trigger === "start_exam") {
     console.log("start_exam extension");
     requestFeatures = message.requiredFeatures;
-    examStatus = "inProgress";
+    // examStatus = message.data.examStatus;
 
     candidateInfo.personEventGuid = message.data.personEventGuid
       ? message.data.personEventGuid
@@ -379,10 +505,9 @@ chrome.runtime.onMessageExternal.addListener((message, sender) => {
       type: "activate-fullscreen",
       message: "I'm from the service worker.",
     };
-
-    chrome.tabs.sendMessage(mainTabId, trigger);
-
-    console.log("triggered start_exam");
+    if(requestFeatures.includes("FULLSCREEN_DETECTION")){
+      chrome.tabs.sendMessage(mainTabId, trigger);
+    }
 
     chrome.tabs.query({ currentWindow: true }, (allTabs) => {
       allTabs.forEach((tab) => {
@@ -410,10 +535,19 @@ chrome.runtime.onMessageExternal.addListener((message, sender) => {
       });
     });
   } else if (message.trigger && message.trigger === "prelim-test") {
+    installed_extensions = [];
     requestFeatures = message.requiredFeatures;
     getExtensions();
+    setTimeout(() => {
+      console.log(installed_extensions);
+      if(installed_extensions.length > 0){
+        sendResponse(true);
+      } else {
+        sendResponse(false);
+      }
+      requestFeatures = [];
+    }, 2000);
   } else if (message.trigger && message.trigger === "anchor-redirect") {
-    // console.log("Anchor tab redirection requested");
     redirectToMaintab();
   } else if (message.trigger && message.trigger === "proc-fullscreen-request") {
     let trigger = {
@@ -421,6 +555,17 @@ chrome.runtime.onMessageExternal.addListener((message, sender) => {
       message: "I'm from the service worker.",
     };
     chrome.tabs.sendMessage(mainTabId, trigger);
+  } else if(message.trigger && message.trigger === "examlocklite-installed"){
+    sendResponse(true);
+  } else if(message.trigger && message.trigger === "get-screen-stream"){
+    chrome.desktopCapture.chooseDesktopMedia(
+      ["screen"],
+      sender.tab,
+      (streamId) => {
+        sendResponse({ streamId });
+      }
+    );
+    return true;
   }
 });
 
@@ -465,21 +610,45 @@ async function httpsPostFlag(url, data, params, callback) {
  * send live flags to content.JS
  * @param {*} flag
  */
-function sendliveFlag(msg) {
+function raiseFlag(msg) {
   let message = {
     type: "live-flag",
     flag: msg.data,
     blockExam: msg.blockContent,
   };
   chrome.tabs.sendMessage(mainTabId, message);
+
+  if(examConductType === "Standalone"){
+    console.log("extension raised HTTPS flag");
+    // httpsPostFlag(
+    //   `${baseApiURL}${flagsApiURL}`,
+    //   message.data,
+    //   candidateInfo,
+    //   (error) => {
+    //     if (error) {
+    //       Flags.push(message.data);
+    //       console.log("Flag API failed");
+    //     } else {
+    //       console.log("Flag API Success");
+    //     }
+    //   }
+    // );
+  } else if(examConductType === "Offline") {
+    console.log("Flag sent to Indexed DB");
+  }
 }
 
+/**
+ * triggering set interval to other extension files
+ */
 function setIntervalTrigger() {
   let message = {
     type: "setInterval-trigger",
+    // examStatus: examStatus
   };
   if (mainTabId !== null) {
     chrome.tabs.sendMessage(mainTabId, message);
+    console.log("Service worker log");
   }
 }
 
@@ -516,7 +685,7 @@ chrome.tabs.onActivated.addListener((tab) => {
             data: flag,
             blockContent: false,
           };
-          sendliveFlag(message);
+          raiseFlag(message);
           httpsPostFlag(
             `${baseApiURL}${flagsApiURL}`,
             flag,
@@ -601,7 +770,7 @@ async function getExtensions() {
           data: flag,
           blockContent: false,
         };
-        sendliveFlag(message);
+        raiseFlag(message);
         httpsPostFlag(
           `${baseApiURL}${flagsApiURL}`,
           flag,
@@ -624,6 +793,9 @@ async function getExtensions() {
   }
 }
 
+/**
+ * function to redirect to main url tab
+ */
 function redirectToMaintab() {
   if (mainTabId !== null) {
     chrome.tabs.update(mainTabId, { active: true }, function (tab) {
@@ -674,7 +846,7 @@ function displayMonitoring() {
         data: flag,
         blockContent: false,
       };
-      sendliveFlag(message);
+      raiseFlag(message);
       httpsPostFlag(
         `${baseApiURL}${flagsApiURL}`,
         flag,
@@ -732,7 +904,7 @@ function logIsAllowed(answer) {
       data: flag,
       blockContent: false,
     };
-    sendliveFlag(message);
+    raiseFlag(message);
     httpsPostFlag(
       `${baseApiURL}${flagsApiURL}`,
       flag,
@@ -828,20 +1000,6 @@ setInterval(() => {
 //       }
 //     });
 //   }
-// }
-
-/**
- * Record the active tab when the popup is loaded
- */
-// function recordTabId() {
-//   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-//     if (tabs.length > 0) {
-//       previousTabId = tabs[0].id;
-//       mainPageURL = tabs[0].url;
-//       console.log("Recorded active Tab ID: ", previousTabId);
-//     }
-//   });
-//   return true;
 // }
 
 // let timerState = {

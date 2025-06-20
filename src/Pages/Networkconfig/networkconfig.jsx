@@ -51,38 +51,38 @@ function Network() {
           </h6>
           <hr />
           <div className="mx-1 my-2 text-xs font-medium">
-            <div className="my-1 flex flex-wrap">
+            {/* <div className="my-1 flex flex-wrap">
               <img src="/assets/globe.svg" alt="globe" />
               <span className="mx-1 my-auto">Download Speed:</span>
               <span className="flex flex-auto"></span>
               <span className="mx-1" id="download-speed">
                 Loading...
               </span>
-              {/*
+              
                 <img
                   className="my-auto h-4"
                   id="download-req"
                   src="/assets/loading.gif"
                   alt="speed-loader"
                 />
-               */}
-            </div>
-            <div className="my-1 flex flex-wrap">
+              
+            </div> */}
+            {/* <div className="my-1 flex flex-wrap">
               <img src="/assets/globe.svg" alt="globe" />
               <span className="mx-1 my-auto">Upload Speed:</span>
               <span className="flex flex-auto"></span>
               <span className="mx-1" id="upload-speed">
                 Loading...
               </span>
-              {/*
+              
                 <img
                   className="my-auto h-4"
                   id="upload-req"
                   src="/assets/loading.gif"
                   alt="speed-loader"
                 />
-               */}
-            </div>
+              
+            </div> */}
             <div className="my-1 flex flex-wrap">
               <img src="/assets/Screen Share.svg" alt="screen-logo" />
               <span className="mx-1 my-auto">WebRTC adapter:</span>
