@@ -54,6 +54,8 @@ const config = {
       "index.jsx",
     ),
     contact: path.join(__dirname, "src", "Pages", "Contact", "index.jsx"),
+    disconnected: path.join(__dirname, "src", "Pages", "Disconnected", "index.jsx"),
+    // "css":["output.css"], add to manifest.JSON if tailwind is needed for content.bundle.js
     output: path.join(__dirname, "src", "index.css"),
   },
   resolve: {
@@ -142,6 +144,11 @@ const config = {
       template: path.join(__dirname, "src", "Pages", "Contact", "index.html"),
       filename: "contact.html",
       chunks: ["contact", "output"],
+    }),
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, "src", "Pages", "Disconnected", "index.html"),
+      filename: "disconnected.html",
+      chunks: ["disconnected", "output"],
     }),
     new CopyWebPackPlugin({
       patterns: [

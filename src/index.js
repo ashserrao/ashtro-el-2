@@ -8,10 +8,10 @@ import { BrowserRouter } from "react-router-dom";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 // Evade direct window exit =====================================
-window.addEventListener("beforeunload", function (e) {
-  e.preventDefault();
-  e.returnValue = ""; // This line is necessary for the confirmation dialog to show
-});
+// window.addEventListener("beforeunload", function (e) {
+//   e.preventDefault();
+//   e.returnValue = ""; // This line is necessary for the confirmation dialog to show
+// });
 
 root.render(
   <BrowserRouter>

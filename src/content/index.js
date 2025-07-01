@@ -10,7 +10,7 @@ const loginStatus = true;
 let requestFeatures = [];
 let devRemove = false;
 let listenersActive = false;
-let tdsURL = "https://testconsole"
+let tdsURL = "https://testconsole";
 let logo = `<svg
 width="26"
 height="29"
@@ -384,7 +384,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
  */
 function makeTabFullScreen() {
   if (window.location.href.startsWith(tdsURL)) {
-    console.log("Inside an iframe. Skipping fullscreen popup.");
+    // console.log("Inside an iframe. Skipping fullscreen popup.");
     return;
   }
 
@@ -401,13 +401,11 @@ function makeTabFullScreen() {
     document.getElementById("fs-confirm-overlay") ||
     document.getElementById("extension-warning-overlay")
   ) {
-    console.log("Another popup is already open.");
     return;
   }
 
   if (
     loginStatus === true &&
-    // examStatus === "inProgress" &&
     requestFeatures.includes("FULLSCREEN_DETECTION") &&
     !isFullScreen
   ) {
@@ -610,8 +608,13 @@ function disabledEvent(e) {
 /**
  * on Message from background
  */
-chrome.runtime.onMessage.addListener(function (message) {
-  if (message.type === "devtools-found") {
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  if (message.type === "setInterval-trigger") {
+    sendResponse("exam-tab-open");
+    getSecurityFeatures();
+    makeTabFullScreen();
+    // examStatus = message.examStatus;
+  } else if (message.type === "devtools-found") {
     devRemove = true;
     window.removeEventListener("beforeunload");
   } else if (message.type === "live-flag") {
@@ -623,15 +626,12 @@ chrome.runtime.onMessage.addListener(function (message) {
     };
     window.postMessage(data, "*");
   } else if (message.type === "activate-fullscreen") {
+    sendResponse(true);
     setTimeout(() => {
-      console.log(message.type);
       makeTabFullScreen();
     }, 2000);
   } else if (message.type === "prelim-exten") {
     additionalExtensionpopup(message.data);
-  } else if (message.type === "setInterval-trigger") {
-    getSecurityFeatures();
-    // examStatus = message.examStatus;
   }
 });
 
@@ -728,12 +728,12 @@ function addListeners(features) {
   }
 }
 
-//===============================================================
+//======================================================================
 // @On load runners
-//===============================================================
+//======================================================================
 
 /**
- * Trigger popup
+ * Trigger video rec popup
  */
 // setTimeout(() => {
 //   Trigger();
